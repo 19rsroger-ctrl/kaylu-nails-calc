@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto | Kaylu Studio Nails</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #FDFBF7; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        .lila-baby { background-color: #C8A2C8; }
+        .text-lila { color: #A882A8; }
+        .border-lila { border-color: #C8A2C8; }
+        
+        .card-glam {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 15px rgba(200, 162, 200, 0.1);
+            border: 1px solid rgba(200, 162, 200, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .btn-check {
+            border: 2px solid #f3f4f6;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-check.active {
+            border-color: #C8A2C8;
+            background-color: #fdf4ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(200, 162, 200, 0.2);
+        }
+
+        .floating-bottom {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Estilo para las barras de largo */
+        .length-bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .nail-shape {
+            fill: #C8A2C8;
+            transition: all 0.4s ease;
+        }
+    </style>
+</head>
+<body class="pb-32 lg:pb-12">
+
+    <div id="app">
+        <!-- Render dinámico -->
+    </div>
+
+    <script>
+        // Datos con imágenes y descripciones actualizadas
+        const techniques = {
+            softgel: { 
+                name: 'Softgel', 
+                img: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&q=80&w=400',
+                desc: 'Incluye tonos lisos y 1 cortesía.', 
+                prices: { 1: 68, 2: 68, 3: 68, 4: 73, 5: 78, 6: 83 } 
+            },
+            semi_mani: { 
+                name: 'Semiper. (Mani)', 
+                img: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&q=80&w=400',
+                desc: 'Esmaltado en uña natural.', 
+                fixed: 35 
+            },
+            semi_pedi: { 
+                name: 'Semiper. (Pedi)', 
+                img: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&q=80&w=400',
+                desc: 'Pedicura completa + esmalte.', 
+                fixed: 45 
+            },
+            rubber: { 
+                name: 'Rubber Gel', 
+                img: 'https://images.unsplash.com/photo-1607779097040-26e80aa78e66?auto=format&fit=crop&q=80&w=400',
+                desc: 'Refuerzo y nivelación natural.', 
+                fixed: 40 
+            },
+            builder: { 
+                name: 'Builder Gel', 
+                img: 'https://images.unsplash.com/photo-1599406181423-f22a57868018?auto=format&fit=crop&q=80&w=400',
+                desc: 'Extensión fuerte y duradera.', 
+                prices: { 1: 45, 2: 45, 3: 45, 4: 50, 5: 55, 6: 60 } 
+            },
+            acrilico: { 
+                name: 'Acrílico', 
+                img: 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=400',
+                desc: 'Técnica clásica esculpida.', 
+                prices: { 1: 55, 2: 55, 3: 55, 4: 61, 5: 67, 6: 73 } 
+            }
+        };
+
+        const effects = [
+            { id: 'espejo', name: 'Efecto Espejo', price: 3, icon: 'sparkles' },
+            { id: 'aurora', name: 'Aurora / Unicornio', price: 3, icon: 'sun' },
+            { id: 'frances', name: 'Diseño Francés', price: 3, icon: 'minus' },
+            { id: 'ojogato', name: 'Ojo de Gato', price: 3, icon: 'eye' },
+            { id: 'marmol', name: 'Efecto Mármol', price: 4, icon: 'layers' },
+            { id: 'cristales', name: 'Cristales S', price: 3, icon: 'gem' },
+            { id: 'mano_simple', name: 'Mano Alzada', price: 4, icon: 'pen-tool' },
+            { id: 'babyboomer', name: 'Baby Boomer', price: 4, icon: 'wind' },
+            { id: 'gel3d', name: '3D Gel Sólido', price: 6, icon: 'box' },
+            { id: 'panoro', name: 'Pan de Oro', price: 3, icon: 'framer' }
+        ];
+
+        const removalRates = {
+            none: { name: 'Ninguno', price: 0 },
+            semi: { name: 'Semipermanente', price: 1.5 },
+            softgel: { name: 'Softgel / Rubber', price: 2 },
+            hard: { name: 'Acrílico / Builder', price: 2 }
+        };
+
+        let state = {
+            technique: 'softgel',
+            length: 1,
+            extraColors: 0,
+            shapeChange: false,
+            removalType: 'none',
+            removalCount: 0,
+            selectedEffects: {}
+        };
+
+        function render() {
+            const app = document.getElementById('app');
+            const total = calculateTotal();
+
+            app.innerHTML = `
+                <!-- Logo & Hero -->
+                <header class="bg-white pt-12 pb-8 px-6 text-center border-b border-purple-50">
+                    <div class="flex flex-col items-center">
+                        <div class="mb-4 w-16 h-16 lila-baby rounded-full flex items-center justify-center text-white shadow-lg">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>
+                        </div>
+                        <h1 class="text-4xl font-serif text-[#C8A2C8] tracking-tight">Kaylu Studio</h1>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-[0.3em] mt-2 font-semibold">Nails & Beauty Experience</p>
+                    </div>
+                </header>
+
+                <main class="max-w-5xl mx-auto p-4 lg:p-8 space-y-10">
+                    
+                    <!-- 1. Técnicas -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-6">
+                            <i data-lucide="sparkles" class="text-lila"></i>
+                            <h2 class="text-xl font-serif text-gray-800">1. Selecciona tu técnica</h2>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            ${Object.entries(techniques).map(([key, value]) => `
+                                <div onclick="updateState('technique', '${key}')" class="btn-check card-glam overflow-hidden cursor-pointer ${state.technique === key ? 'active' : ''}">
+                                    <div class="h-32 w-full overflow-hidden bg-gray-100">
+                                        <img src="${value.img}" alt="${value.name}" class="w-full h-full object-cover opacity-90 transition-transform duration-500 hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&q=80&w=400'">
+                                    </div>
+                                    <div class="p-4">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-gray-800 uppercase text-xs tracking-wider">${value.name}</span>
+                                            ${state.technique === key ? '<i data-lucide="check-circle-2" class="w-4 h-4 text-lila"></i>' : ''}
+                                        </div>
+                                        <p class="text-[11px] text-gray-500 leading-relaxed">${value.desc}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+
+                    <!-- 2. Largo Visual -->
+                    ${techniques[state.technique].prices ? `
+                    <section class="card-glam p-6 lg:p-10 relative overflow-hidden">
+                        <div class="flex items-center gap-3 mb-8">
+                            <i data-lucide="maximize" class="text-lila"></i>
+                            <h2 class="text-xl font-serif text-gray-800">2. Elige el largo ideal</h2>
+                        </div>
+                        
+                        <div class="flex justify-between items-end h-56 gap-2 sm:gap-4 px-2 sm:px-8 max-w-2xl mx-auto">
+                            ${[1,2,3,4,5,6].map(l => `
+                                <button onclick="updateState('length', ${l})" class="flex-1 group flex flex-col items-center">
+                                    <div class="relative w-full flex items-end justify-center h-full mb-2">
+                                        <!-- Uña Ilustrativa -->
+                                        <svg width="40" height="120" viewBox="0 0 40 120" class="mb-2">
+                                            <!-- Dedo -->
+                                            <path d="M10 120 V60 Q10 40 20 40 Q30 40 30 60 V120" fill="#FCE7D6" />
+                                            <!-- Uña dinámica -->
+                                            <path d="M12 65 V${65 - (l*8)} Q12 ${55 - (l*8)} 20 ${55 - (l*8)} Q28 ${55 - (l*8)} 28 ${65 - (l*8)} V65" 
+                                                  class="nail-shape ${state.length === l ? 'fill-[#C8A2C8]' : 'fill-gray-200'}" />
+                                        </svg>
+                                        <!-- Barra de progreso -->
+                                        <div class="length-bar ${state.length === l ? 'lila-baby shadow-lg' : 'bg-gray-100'} w-full" style="height: ${l * 10}%"></div>
+                                    </div>
+                                    <span class="text-[10px] mt-2 font-bold ${state.length === l ? 'text-lila' : 'text-gray-300'}">LARGO ${l}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div class="mt-8 text-center bg-purple-50 rounded-2xl p-3 inline-block mx-auto w-full max-w-md">
+                            <p class="text-xs text-lila font-semibold">Precio Base para L${state.length}: S/ ${techniques[state.technique].prices[state.length]}</p>
+                        </div>
+                    </section>
+                    ` : ''}
+
+                    <!-- 3. Arte -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-6">
+                            <i data-lucide="palette" class="text-lila"></i>
+                            <h2 class="text-xl font-serif text-gray-800">3. Diseño y Arte Extra</h2>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            ${effects.map(eff => `
+                                <div class="card-glam p-3 flex flex-col justify-between min-h-[110px] hover:border-lila">
+                                    <div class="flex justify-between items-start">
+                                        <div class="bg-purple-50 p-1.5 rounded-lg">
+                                            <i data-lucide="${eff.icon}" class="w-4 h-4 text-lila"></i>
+                                        </div>
+                                        <span class="text-[9px] font-bold text-lila bg-white border border-purple-100 px-2 py-0.5 rounded-full">S/${eff.price}</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-gray-700 mt-2 truncate">${eff.name}</span>
+                                    <div class="flex justify-between items-center mt-3 bg-gray-50 rounded-lg p-1">
+                                        <button onclick="updateEffect('${eff.id}', -1)" class="w-6 h-6 flex items-center justify-center hover:bg-white rounded transition-all text-gray-400">-</button>
+                                        <span class="text-xs font-mono font-bold">${state.selectedEffects[eff.id] || 0}</span>
+                                        <button onclick="updateEffect('${eff.id}', 1)" class="w-6 h-6 flex items-center justify-center hover:bg-white rounded transition-all text-lila">+</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+
+                    <!-- 4. Adicionales -->
+                    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card-glam p-6 space-y-4">
+                            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-lila"></i> Adicionales</h3>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                                <div>
+                                    <p class="text-[11px] font-bold">Tonos Extras</p>
+                                    <p class="text-[9px] text-gray-400">S/ 1.5 por tono</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <button onclick="updateState('extraColors', Math.max(0, state.extraColors - 1))" class="w-8 h-8 rounded-full border bg-white flex items-center justify-center shadow-sm">-</button>
+                                    <span class="font-bold text-sm">${state.extraColors}</span>
+                                    <button onclick="updateState('extraColors', state.extraColors + 1)" class="w-8 h-8 rounded-full border bg-white flex items-center justify-center shadow-sm">+</button>
+                                </div>
+                            </div>
+                            <button onclick="updateState('shapeChange', !state.shapeChange)" class="w-full flex justify-between items-center p-3 border rounded-xl transition-all ${state.shapeChange ? 'border-lila bg-purple-50 shadow-sm' : 'bg-gray-50'}">
+                                <span class="text-[11px] font-bold">Cambio de Forma (+S/15)</span>
+                                <div class="w-5 h-5 rounded border bg-white ${state.shapeChange ? 'bg-[#C8A2C8] border-[#C8A2C8] text-white flex items-center justify-center' : ''}">
+                                    ${state.shapeChange ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
+                                </div>
+                            </button>
+                        </div>
+
+                        <div class="card-glam p-6 space-y-4">
+                            <h3 class="font-bold text-gray-800 text-sm flex items-center gap-2"><i data-lucide="trash-2" class="w-4 h-4 text-lila"></i> Retiro previo</h3>
+                            <select onchange="updateState('removalType', this.value)" class="w-full p-3 bg-gray-50 rounded-xl text-[11px] font-bold border-none outline-none focus:ring-1 focus:ring-purple-200">
+                                ${Object.entries(removalRates).map(([key, val]) => `
+                                    <option value="${key}" ${state.removalType === key ? 'selected' : ''}>${val.name}</option>
+                                `).join('')}
+                            </select>
+                            ${state.removalType !== 'none' ? `
+                            <div class="flex items-center justify-between p-3 bg-purple-50 rounded-xl border border-purple-100 animate-pulse">
+                                <span class="text-[9px] font-bold text-lila uppercase">¿Cuántas uñas?</span>
+                                <div class="flex items-center gap-4">
+                                    <button onclick="updateState('removalCount', Math.max(0, state.removalCount - 1))" class="w-8 h-8 rounded-full border bg-white flex items-center justify-center shadow-sm">-</button>
+                                    <span class="font-bold text-sm">${state.removalCount}</span>
+                                    <button onclick="updateState('removalCount', Math.min(10, state.removalCount + 1))" class="w-8 h-8 rounded-full border bg-white flex items-center justify-center shadow-sm">+</button>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </section>
+
+                </main>
+
+                <!-- Footer Flotante Mobile -->
+                <div class="fixed bottom-0 left-0 right-0 floating-bottom shadow-[0_-10px_30px_rgba(0,0,0,0.08)] p-6 lg:static lg:bg-transparent lg:shadow-none lg:mt-12 z-50">
+                    <div class="max-w-4xl mx-auto flex justify-between items-center">
+                        <div class="lg:text-center">
+                            <p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Inversión Estimada</p>
+                            <p class="text-3xl font-serif text-[#C8A2C8]">S/ ${total.toFixed(2)}</p>
+                        </div>
+                        <button onclick="sendWhatsApp()" class="lila-baby text-white px-8 lg:px-12 py-4 rounded-2xl font-bold shadow-lg shadow-purple-200 active:scale-95 transition-all flex items-center gap-2">
+                            <span class="text-sm">Reservar Cita</span>
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <footer class="mt-20 py-10 text-center border-t border-gray-100">
+                    <p class="text-gray-300 text-[10px] tracking-[0.2em] font-bold uppercase">Kaylu Studio Nails &copy; 2024</p>
+                </footer>
+            `;
+            lucide.createIcons();
+        }
+
+        // Lógica de cálculo
+        function calculateTotal() {
+            let total = 0;
+            const tech = techniques[state.technique];
+            
+            // Base técnica/largo
+            total += tech.prices ? tech.prices[state.length] : tech.fixed;
+            
+            // Efectos
+            Object.entries(state.selectedEffects).forEach(([id, count]) => {
+                const eff = effects.find(e => e.id === id);
+                total += (eff.price * count);
+            });
+            
+            // Extras
+            total += (state.extraColors * 1.5);
+            if (state.shapeChange) total += 15;
+            
+            // Retiro
+            if (state.removalType !== 'none') {
+                total += (state.removalCount * removalRates[state.removalType].price);
+            }
+            
+            return total;
+        }
+
+        function updateState(key, value) {
+            state[key] = value;
+            if (key === 'technique' && !techniques[value].prices) {
+                state.length = 1; // Reset largo si no aplica
+            }
+            render();
+        }
+
+        function updateEffect(id, delta) {
+            const current = state.selectedEffects[id] || 0;
+            const next = Math.max(0, current + delta);
+            if (next === 0) delete state.selectedEffects[id];
+            else state.selectedEffects[id] = next;
+            render();
+        }
+
+        function sendWhatsApp() {
+            const total = calculateTotal();
+            const text = `¡Hola Kaylu Studio! ✨ He personalizado mi servicio en la calculadora:\n\n` +
+                         `📌 Técnica: ${techniques[state.technique].name}\n` +
+                         (techniques[state.technique].prices ? `📏 Largo: L${state.length}\n` : '') +
+                         `✨ Total estimado: S/${total.toFixed(2)}\n\n` +
+                         `Quisiera agendar una cita para esta semana.`;
+            
+            // IMPORTANTE: Reemplaza con tu número de WhatsApp real abajo (sin el +)
+            const miNumero = "51999999999"; 
+            window.open(`https://wa.me/${miNumero}?text=${encodeURIComponent(text)}`);
+        }
+
+        // Inicio
+        render();
+    </script>
+</body>
+</html>
